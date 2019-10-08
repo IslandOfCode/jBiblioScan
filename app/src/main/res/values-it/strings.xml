@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="B_clear">Pulisci</string>
+    <string name="B_connect">Connetti a jBiblio</string>
+    <string name="B_disconnect">Disconnetti</string>
+    <string name="B_resendcode">Reinvia codice</string>
+    <string name="B_scan">Scansiona codice a barre</string>
+    <string name="MAIN_connected">Connesso!</string>
+    <string name="MAIN_not_connected">Non connesso</string>
+    <string name="TXT_scan">Inquadra il codice a barre</string>
+    <string name="TXT_scan_connect">Scansiona codice QR</string>
+    <string name="descrizione">Companion app di jBiblio, per la scansione di codici a barre.</string>
+    <string name="title_activity_scan">Scansiona codice ISBN</string>
+    <string name="title_connect_scan">Scansiona codice QR</string>
+</resources>
