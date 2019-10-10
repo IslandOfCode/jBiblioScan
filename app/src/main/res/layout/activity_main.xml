@@ -41,6 +41,7 @@
         android:layout_marginEnd="101dp"
         android:onClick="connect"
         android:text="@string/B_connect"
+        android:textColor="#FF1976D2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/L_connection_status" />

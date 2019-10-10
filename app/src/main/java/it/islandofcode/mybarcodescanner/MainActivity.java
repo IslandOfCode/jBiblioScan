@@ -1,7 +1,6 @@
 package it.islandofcode.mybarcodescanner;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
@@ -11,20 +10,22 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import it.islandofcode.mybarcodescanner.it.islandofcode.mybarcodescanner.util.NetworkOp;
+import it.islandofcode.mybarcodescanner.it.islandofcode.mybarcodescanner.net.MyHttpClient;
+import it.islandofcode.mybarcodescanner.it.islandofcode.mybarcodescanner.net.ProcessNetData;
 
-public class MainActivity extends AppCompatActivity implements ProcessNetData{
+public class MainActivity extends AppCompatActivity implements ProcessNetData {
 
     //private final static String NEEDED_PERMISSION = Manifest.permission.INTERNET;
 
     //private static final int REQUEST_ID = 444;
 
-    private NetworkOp netop = null;
+    private MyHttpClient netop = null;
     private String UUID;
     private String URL;
     private boolean CONNECTION_ACTIVE = false;
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -58,8 +60,13 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData{
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
     public void openScanView(View view){
-        Intent iscan = new Intent(this, ScanActivity.class);
+        Intent iscan = new Intent(this, IsbnScanActivity.class);
         iscan.putExtra("UUID", UUID);
         iscan.putExtra("URL", URL);
         startActivity(iscan);
@@ -68,16 +75,15 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData{
     public void connect(View view){
         if(CONNECTION_ACTIVE){ //sto chiedendo una disconnessione
 
-            netop = new NetworkOp(this);
+            netop = new MyHttpClient(this);
             netop.execute(URL+"/?disconnect="+UUID);
 
         } else {
-            Intent cscan = new Intent(this, ConnectActivity.class);
+            Intent cscan = new Intent(this, PairActivity.class);
             startActivityForResult(cscan,991);
         }
 
     }
-
 
     /**
      * Modifica pulsanti e testo di stato connessione
@@ -86,15 +92,18 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData{
     private void setConnectionTextStyle(boolean connected){
         Button b_scan = findViewById(R.id.B_scan);
         Button b_conn = findViewById(R.id.B_connect);
+        TextView label = findViewById(R.id.L_connection_status);
         CONNECTION_ACTIVE = connected;
         if(connected){
             b_scan.setEnabled(true);
             b_conn.setText(R.string.B_disconnect);
             b_conn.setTextColor(Color.parseColor("#FF388E3C")); //green material
+            label.setText(R.string.MAIN_connected);
         } else {
             b_scan.setEnabled(false);
             b_conn.setText(R.string.B_connect);
             b_conn.setTextColor(Color.parseColor("#FF1976D2")); //blue material
+            label.setText(R.string.MAIN_not_connected);
         }
     }
 /*
@@ -120,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData{
 
         if(result == null){
             Log.d("JBIBLIO", "Nessun risultato per la disconnessione");
-        } else if(result.equals(NetworkOp.DISCONNECTION)){
+        } else if(result.equals(MyHttpClient.DISCONNECTION)){
             Log.d("JBIBLIO", result);
             setConnectionTextStyle(false);
         }
@@ -136,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData{
                 //qui mi aspetto un UUID
                 this.UUID = data.getStringExtra("UUID");
                 this.URL = data.getStringExtra("URL");
-                Log.d("JBIBLIO", "Returned " + UUID + " from " + URL + " by ConnectScan");
+                Log.d("JBIBLIO", "Returned " + UUID + " from " + URL + " by PairScan");
                 setConnectionTextStyle(true);
                 return;
             } else if(resultCode==RESULT_CANCELED){

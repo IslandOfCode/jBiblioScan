@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">MyBarCodeScanner</string>
+    <string name="app_name" translatable="false">jBiblio Scan</string>
     <string name="logo" translatable="false">Logo</string>
     <string name="descrizione">App companion of jBiblio, for the scanning of Barcode.</string>
     <string name="autore" translatable="false">by Pier Riccardo Monzo</string>
@@ -12,13 +12,7 @@
     <string name="B_connect">Connect to jBiblio</string>
     <string name="B_disconnect">Disconnect</string>
     <string name="B_scan">Scan Barcode</string>
-    <string name="TXT_scan_connect">Scan QRCode</string>
     <string name="title_connect_scan">Scan QR code</string>
-
-    <string name="TXT_scan">Aim to the Barcode</string>
-
-    <string name="B_resendcode">Resend code</string>
-    <string name="B_clear">Clear</string>
 
 
     <string name="no_internet" translatable="false">NO INTERNET</string>

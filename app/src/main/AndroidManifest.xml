@@ -20,18 +20,19 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-
         <activity
-            android:name=".ScanActivity"
-            android:label="@string/title_activity_scan"
+            android:name=".PairActivity"
             android:configChanges="orientation"
-            android:screenOrientation="portrait"/>
-        <activity
-            android:name=".ConnectActivity"
             android:label="@string/title_connect_scan"
+            android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".IsbnScanActivity"
             android:configChanges="orientation"
+            android:label="@string/title_activity_scan"
             android:screenOrientation="portrait"/>
-        <activity android:name=".MainActivity"
+        <activity
+            android:name=".MainActivity"
+            android:theme="@style/SplashTheme">
             android:configChanges="orientation"
             android:screenOrientation="portrait">
             <intent-filter>
