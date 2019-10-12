@@ -102,8 +102,7 @@ public class PairActivity extends AppCompatActivity implements ProcessNetData, Z
         beepSound();
 
         MHC = new MyHttpClient(PairActivity.this);
-        MHC.execute(qrcode+"/?connect=reallyreallywanna");
-
+        MHC.execute(qrcode+"/connect");
     }
 
     @Override

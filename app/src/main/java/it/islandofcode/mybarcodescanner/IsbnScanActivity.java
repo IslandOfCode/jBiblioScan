@@ -1,19 +1,17 @@
 package it.islandofcode.mybarcodescanner;
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
@@ -34,7 +32,6 @@ public class IsbnScanActivity extends AppCompatActivity implements ProcessNetDat
     private final static String NEEDED_PERMISSION = Manifest.permission.CAMERA;
 
     private MyHttpClient MHC;
-    private String barcode;
 
     private String UUID;
     private String URL;
@@ -101,7 +98,7 @@ public class IsbnScanActivity extends AppCompatActivity implements ProcessNetDat
 
     @Override
     public void handleResult(Result rawResult) {
-        barcode = rawResult.getText();
+        String barcode = rawResult.getText();
         Log.v("JBIBLIO", barcode); // Prints scan results
         Log.v("JBIBLIO", rawResult.getBarcodeFormat().toString()); // Prints the scan format (qrcode, pdf417 etc.)
 
@@ -113,7 +110,7 @@ public class IsbnScanActivity extends AppCompatActivity implements ProcessNetDat
         }
 
         MHC = new MyHttpClient(IsbnScanActivity.this);
-        MHC.execute(URL+"/?isbn="+barcode+"&key="+UUID);
+        MHC.execute(URL+"/isbn/"+ barcode +"/"+UUID);
 
         //(new Handler()).postDelayed(this::finish, 1000);
 

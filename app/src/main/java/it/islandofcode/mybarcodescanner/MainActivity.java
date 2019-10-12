@@ -16,6 +16,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.GregorianCalendar;
+
 import it.islandofcode.mybarcodescanner.it.islandofcode.mybarcodescanner.net.MyHttpClient;
 import it.islandofcode.mybarcodescanner.it.islandofcode.mybarcodescanner.net.ProcessNetData;
 
@@ -29,6 +31,10 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
     private String UUID;
     private String URL;
     private boolean CONNECTION_ACTIVE = false;
+
+    private GregorianCalendar lastPing;
+    private boolean PING_REQUESTED = false;
+    private static final int PING_MINIMUM_WAIT_TIME = 5000; //in millisecondi
 
     public void goToTheWebsite(View view){
         String url = "http://www.islandofcode.it";
@@ -57,12 +63,28 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
             b_conn.setText(R.string.no_internet);
             //TODO usa un listener per cambiare stato al pulsante
         }
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        if(CONNECTION_ACTIVE && URL != null && !URL.isEmpty()){
+
+            if(lastPing==null)
+                lastPing = new GregorianCalendar();
+
+            long cmp = (new GregorianCalendar().getTimeInMillis())-lastPing.getTimeInMillis();
+            if(cmp>=PING_MINIMUM_WAIT_TIME){
+                PING_REQUESTED = true;
+                Log.d("JBIBLIO","PING REQUESTED");
+                netop = new MyHttpClient(this);
+                netop.execute(URL+"/ping");
+                lastPing = new GregorianCalendar();
+            } else {
+                Log.d("JBIBLIO","PING DENIEND, ultimo ping " +cmp+"ms fa.");
+            }
+
+        }
     }
 
     public void openScanView(View view){
@@ -76,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
         if(CONNECTION_ACTIVE){ //sto chiedendo una disconnessione
 
             netop = new MyHttpClient(this);
-            netop.execute(URL+"/?disconnect="+UUID);
+            netop.execute(URL+"/disconnect/"+UUID);
 
         } else {
             Intent cscan = new Intent(this, PairActivity.class);
@@ -106,33 +128,23 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
             label.setText(R.string.MAIN_not_connected);
         }
     }
-/*
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_ID: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    //TODO
-
-                } else {
-
-                    //TODO
-                }
-                return;
-            }
-        }
-    }*/
 
     @Override
     public void process(String result) {
-
+        Log.d("JBIBLIO", "PROCESSED: " + result);
         if(result == null){
             Log.d("JBIBLIO", "Nessun risultato per la disconnessione");
+            setConnectionTextStyle(false);
         } else if(result.equals(MyHttpClient.DISCONNECTION)){
-            Log.d("JBIBLIO", result);
+            Log.d("JBIBLIO", "DISCONNECT RESPONSE: " + result);
+            setConnectionTextStyle(false);
+        } else if(PING_REQUESTED && !result.contains(MyHttpClient.PONG)){
+            Log.d("JBIBLIO","PING FAILED" );
+            showMessage("Server offline");
+            PING_REQUESTED = false;
             setConnectionTextStyle(false);
         }
+
     }
 
     @Override

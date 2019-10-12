@@ -6,6 +6,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -15,6 +16,9 @@ public class MyHttpClient  extends AsyncTask<String, Void, String> implements Se
     private ProcessNetData dataProcessor;
 
     public static final String DISCONNECTION = "BYE";
+    public static final String PONG = "PONG";
+    public static final String ERROR = "ERROR";
+    public static final String UNKNOW = "UNKNOW";
 
     public MyHttpClient(ProcessNetData PND){
         this.dataProcessor = PND;
@@ -22,7 +26,11 @@ public class MyHttpClient  extends AsyncTask<String, Void, String> implements Se
 
     @Override
     protected String doInBackground(String... strings) {
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .connectTimeout(1500, TimeUnit.MILLISECONDS)
+                .readTimeout(1500, TimeUnit.MILLISECONDS)
+                .writeTimeout(1500, TimeUnit.MILLISECONDS)
+                .build();
 
         Request request = new Request.Builder()
                 .url(strings[0])
