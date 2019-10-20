@@ -4,11 +4,11 @@ android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
     defaultConfig {
-        applicationId "it.islandofcode.mybarcodescanner"
+        applicationId "it.islandofcode.jbiblioscan"
         minSdkVersion 24
         targetSdkVersion 29
         versionCode 1
-        versionName "0.0.1"
+        versionName "0.5.0"
         //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

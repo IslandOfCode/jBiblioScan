@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.net.NetworkCapabilities;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -47,6 +47,16 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if(!isNetworkConnected(this.getApplicationContext())){
+            showMessage("Nessuna connessione WiFi rilevata!");
+
+            Button b_conn = findViewById(R.id.B_connect);
+            b_conn.setEnabled(false);
+            b_conn.setText(R.string.no_internet);
+            //TODO usa un listener per cambiare stato al pulsante
+        }
+
+        /*
         ConnectivityManager connectivityManager = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = null;
         if (connectivityManager != null) {
@@ -63,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
             b_conn.setText(R.string.no_internet);
             //TODO usa un listener per cambiare stato al pulsante
         }
+        */
     }
 
     @Override
@@ -153,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
         //connectactivity
         if(requestCode==991){
 
-            if (resultCode==RESULT_OK) {
+            if (resultCode==RESULT_OK && getIntent().hasExtra("UUID") && getIntent().hasExtra("URL")) {
                 //qui mi aspetto un UUID
                 this.UUID = data.getStringExtra("UUID");
                 this.URL = data.getStringExtra("URL");
@@ -176,5 +187,18 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
                 .setMessage(msg)
                 .setPositiveButton("Ok", null)
                 .show();
+    }
+
+    public static boolean isNetworkConnected(Context context) {
+        final ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if (cm != null) {
+            NetworkCapabilities capabilities = cm.getNetworkCapabilities(cm.getActiveNetwork());
+            if (capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
