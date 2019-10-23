@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="it.islandofcode.mybarcodescanner">
+    package="it.islandofcode.jbiblioscan">
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
@@ -21,17 +21,17 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".PairActivity"
+            android:name="it.islandofcode.jbiblioscan.PairActivity"
             android:configChanges="orientation"
             android:label="@string/title_connect_scan"
             android:screenOrientation="portrait"></activity>
         <activity
-            android:name=".IsbnScanActivity"
+            android:name="it.islandofcode.jbiblioscan.IsbnScanActivity"
             android:configChanges="orientation"
             android:label="@string/title_activity_scan"
             android:screenOrientation="portrait"/>
         <activity
-            android:name=".MainActivity"
+            android:name="it.islandofcode.jbiblioscan.MainActivity"
             android:theme="@style/SplashTheme"
             android:configChanges="orientation"
             android:screenOrientation="portrait">

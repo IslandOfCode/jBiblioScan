@@ -1,4 +1,4 @@
-package it.islandofcode.mybarcodescanner.it.islandofcode.mybarcodescanner.net;
+package it.islandofcode.jbiblioscan.net;
 
 import android.os.AsyncTask;
 import android.util.Log;
@@ -14,11 +14,6 @@ import okhttp3.Response;
 
 public class MyHttpClient  extends AsyncTask<String, Void, String> implements Serializable {
     private ProcessNetData dataProcessor;
-
-    public static final String DISCONNECTION = "BYE";
-    public static final String PONG = "PONG";
-    public static final String ERROR = "ERROR";
-    public static final String UNKNOW = "UNKNOW";
 
     public MyHttpClient(ProcessNetData PND){
         this.dataProcessor = PND;

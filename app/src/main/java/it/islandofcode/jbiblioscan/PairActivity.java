@@ -1,6 +1,7 @@
-package it.islandofcode.mybarcodescanner;
+package it.islandofcode.jbiblioscan;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -21,34 +22,28 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import it.islandofcode.mybarcodescanner.it.islandofcode.mybarcodescanner.net.MyHttpClient;
-import it.islandofcode.mybarcodescanner.it.islandofcode.mybarcodescanner.net.ProcessNetData;
+import it.islandofcode.jbiblioscan.net.MyHttpClient;
+import it.islandofcode.jbiblioscan.net.ProcessNetData;
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
-public class IsbnScanActivity extends AppCompatActivity implements ProcessNetData, ZXingScannerView.ResultHandler{
+public class PairActivity extends AppCompatActivity implements ProcessNetData, ZXingScannerView.ResultHandler{
 
     private ZXingScannerView mScannerView;
-    private static final int REQUEST_ID = 444;
+    private static final int REQUEST_ID = 555;
     private final static String NEEDED_PERMISSION = Manifest.permission.CAMERA;
 
     private MyHttpClient MHC;
-
-    private String UUID;
-    private String URL;
+    private String qrcode = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_isbn_scan);
+        setContentView(R.layout.activity_pair);
 
         if (ContextCompat.checkSelfPermission(this, NEEDED_PERMISSION)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{NEEDED_PERMISSION}, REQUEST_ID);
         }
-
-
-        this.URL = getIntent().getStringExtra("URL");
-        this.UUID = getIntent().getStringExtra("UUID");
 
         mScannerView = new ZXingScannerView(this);
         mScannerView.setAutoFocus(true);
@@ -56,11 +51,12 @@ public class IsbnScanActivity extends AppCompatActivity implements ProcessNetDat
         mScannerView.setAspectTolerance(0.5f);
 
         List<BarcodeFormat> formats = new ArrayList<>();
-        //formats.add(BarcodeFormat.QR_CODE);
-        formats.add(BarcodeFormat.EAN_13);
+        formats.add(BarcodeFormat.QR_CODE);
+        //formats.add(BarcodeFormat.EAN_13);
 
         mScannerView.setFormats(formats);
         setContentView(mScannerView);
+
     }
 
     @Override
@@ -74,58 +70,39 @@ public class IsbnScanActivity extends AppCompatActivity implements ProcessNetDat
         super.onResume();
         mScannerView.setResultHandler(this);
         mScannerView.startCamera();
-        //TODO verificare se devi reimpostare anche autofocus, AspectTolerance e formats
+        //TODO verificare se devo reimpostare anche autofocus, AspectTolerance e formats
     }
 
     @Override
     public void process(String result) {
-        if(result==null || !result.trim().equals("RECEIVED")){
-            Log.d("JBIBLIO", "ISBN NON RICEVUTO, risposta ["+result+"]");
-            new AlertDialog.Builder(this)
-                    .setTitle("ERRORE!")
-                    .setMessage("Il server non ha confermato la ricezione!")
-                    .setPositiveButton("chiudi", (dialogInterface, i) -> finish())
-                    .show();
+
+        Intent intent = new Intent();
+        intent.putExtra("UUID", result);
+        intent.putExtra("URL", qrcode);
+        if(result==null || result.equals(ProcessNetData.ERROR)){
+            Log.d("JBIBLIO","Errore connessione");
+            setResult(RESULT_CANCELED,intent);
         } else {
-            new AlertDialog.Builder(this)
-                    .setTitle("ISBN ricevuto!")
-                    .setMessage("Vuoi scansionare un altro codice a barre?")
-                    .setPositiveButton("Si", (dialogInterface, i) -> mScannerView.resumeCameraPreview(this))
-                    .setNegativeButton("No", (dialogInterface, i) -> finish())
-                    .show();
+            setResult(RESULT_OK,intent);
+            Log.d("JBIBLIO", "Connessione stabilita, ritorno a MainActivity con UUID="+result);
         }
+
+        MHC.cancel(true);
+        finish();
+
+        //(new Handler()).postDelayed(this::finish, 1000);
     }
 
     @Override
     public void handleResult(Result rawResult) {
-        String barcode = rawResult.getText();
-        Log.v("JBIBLIO", barcode); // Prints scan results
+        qrcode = rawResult.getText();
+        Log.v("JBIBLIO", qrcode); // Prints scan results
         Log.v("JBIBLIO", rawResult.getBarcodeFormat().toString()); // Prints the scan format (qrcode, pdf417 etc.)
 
         beepSound();
 
-        //TODO dovrebbe essere inutile, poichè già concludo la connessione prima di aprirne un'altra
-        if(MHC!=null && !MHC.isCancelled()){
-            MHC.cancel(true);
-        }
-
-        MHC = new MyHttpClient(IsbnScanActivity.this);
-        MHC.execute(URL+"/isbn/"+ barcode +"/"+UUID);
-
-        //(new Handler()).postDelayed(this::finish, 1000);
-
-        /* //Per java precedente a 8, utile pure per lanciare più cose contemporaneamente
-        Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                public void run() {
-                    // yourMethod();
-                }
-            }, 5000);   //5 seconds
-         */
-
-
-        // If you would like to resume scanning, call this method below:
-        //mScannerView.resumeCameraPreview(this);
+        MHC = new MyHttpClient(PairActivity.this);
+        MHC.execute(qrcode+"/connect");
     }
 
     @Override
@@ -137,8 +114,8 @@ public class IsbnScanActivity extends AppCompatActivity implements ProcessNetDat
 
                     if (ActivityCompat.shouldShowRequestPermissionRationale(this, NEEDED_PERMISSION)) {
                         new AlertDialog.Builder(this)
-                                .setMessage("Quest'app utilizza la fotocamera per rilevare codici a barre. Per poterla usare, è fondamentale condere i permessi relativi. ")
-                                .setPositiveButton("Ok", (dialog, which) -> ActivityCompat.requestPermissions(IsbnScanActivity.this,
+                                .setMessage("Quest'app utilizza la fotocamera per rilevare QrCode. Per poterla usare, è fondamentale condere i permessi relativi. ")
+                                .setPositiveButton("Ok", (dialog, which) -> ActivityCompat.requestPermissions(PairActivity.this,
                                         new String[]{NEEDED_PERMISSION}, REQUEST_ID))
                                 .show();
                     } else {
@@ -157,7 +134,6 @@ public class IsbnScanActivity extends AppCompatActivity implements ProcessNetDat
                         .setMessage("Permesso di accesso alla fotocamera negato, esco.")
                         .setPositiveButton("chiudi", (dialogInterface, i) -> finish())
                         .show();
-                //exit("Permesso di accesso alla fotocamera negato, esco.");
             }
         }
 
