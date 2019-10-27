@@ -1,9 +1,11 @@
 package it.islandofcode.jbiblioscan;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
     private boolean CONNECTION_ACTIVE = false;
 
     //private GregorianCalendar lastPing;
-    //private boolean PING_REQUESTED = false;
+    private boolean PING_REQUESTED = false;
     //private static final int PING_MINIMUM_WAIT_TIME = 5000; //in millisecondi
 
     public void goToTheWebsite(View view){
@@ -50,27 +53,8 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
             Button b_conn = findViewById(R.id.B_connect);
             b_conn.setEnabled(false);
             b_conn.setText(R.string.no_internet);
-            //TODO usa un listener per cambiare stato al pulsante
+            setNetworkCallback(getApplicationContext());
         }
-
-        /*
-        ConnectivityManager connectivityManager = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = null;
-        if (connectivityManager != null) {
-            networkInfo = connectivityManager.getActiveNetworkInfo();
-        }
-
-        if (networkInfo == null || !networkInfo.isConnected() ||
-                (networkInfo.getType() != ConnectivityManager.TYPE_WIFI)) {
-
-            showMessage("Nessuna connessione WiFi rilevata!");
-
-            Button b_conn = findViewById(R.id.B_connect);
-            b_conn.setEnabled(false);
-            b_conn.setText(R.string.no_internet);
-            //TODO usa un listener per cambiare stato al pulsante
-        }
-        */
     }
 
     @Override
@@ -139,9 +123,13 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
     @Override
     public void process(String result) {
         Log.d("JBIBLIO", "PROCESSED: " + result);
-        if(result == null){
-            Log.d("JBIBLIO", "Nessun risultato per la disconnessione");
+        if(result == null) {
+            Log.d("JBIBLIO", "Nessun risultato per la richiesta");
             setConnectionTextStyle(false);
+            showMessage("Server offline");
+            CONNECTION_ACTIVE = false;
+        } else if(PING_REQUESTED && result.contains(ProcessNetData.PONG)){
+            setConnectionTextStyle(true);
         } else if(result.equals(ProcessNetData.DISCONNECTION) || result.equals(ProcessNetData.UNKNOW)){
             Log.d("JBIBLIO", "DISCONNECT RESPONSE: " + result);
             setConnectionTextStyle(false);
@@ -153,23 +141,22 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
         } else {
             Log.d("JBIBLIO","Failed to process the result from network" );
         }
+        PING_REQUESTED = false;
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(data==null) {
-            showMessage("Errore interno. Intent data non poteva essere nullo.");
-            return;
+        //TODO rimuovimi, servo solo per debug
+        if(data!=null) {
+            Log.d("JBIBLIO", "\n\tREQUEST CODE: "+requestCode
+                    +"\n\tRESULT CODE: " +resultCode
+                    +"\n\tHAS UUID: "+data.hasExtra("UUID")
+                    +"\n\tHAS URL: "+data.hasExtra("URL")
+            );
         }
 
-        //connectactivity
-        Log.d("JBIBLIO", "\n\tREQUEST CODE: "+requestCode
-                +"\n\tRESULT CODE: " +resultCode
-                +"\n\tHAS UUID: "+data.hasExtra("UUID")
-                +"\n\tHAS URL: "+data.hasExtra("URL")
-        );
         if(requestCode==991){
 
             if (resultCode==RESULT_OK && data.hasExtra("UUID") && data.hasExtra("URL")) {
@@ -207,5 +194,34 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
         }
 
         return false;
+    }
+
+    private void setNetworkCallback(Context context){
+        final ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if(cm != null){
+            cm.registerDefaultNetworkCallback(new ConnectivityManager.NetworkCallback(){
+                @Override
+                public void onAvailable(@NonNull Network network) {
+                    super.onAvailable(network);
+                    if(CONNECTION_ACTIVE){  //ripristina connessione
+                        PING_REQUESTED = true;
+                        MyHttpClient net = new MyHttpClient(MainActivity.this);
+                        net.execute(URL+"/ping");
+                    } else {
+                        setConnectionTextStyle(false);
+                    }
+                }
+
+                @Override
+                public void onLost(@NonNull Network network) {
+                    super.onLost(network);
+                    Button b_conn = ((Activity)context).findViewById(R.id.B_connect);
+                    b_conn.setEnabled(false);
+                    b_conn.setText(R.string.no_internet);
+                    showMessage("Connessione alla rete persa!");
+                }
+            });
+        }
     }
 }

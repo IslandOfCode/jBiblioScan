@@ -1,13 +1,19 @@
 package it.islandofcode.jbiblioscan;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
+import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -61,6 +67,8 @@ public class IsbnScanActivity extends AppCompatActivity implements ProcessNetDat
 
         mScannerView.setFormats(formats);
         setContentView(mScannerView);
+
+        setNetworkCallback(getApplicationContext());
     }
 
     @Override
@@ -176,6 +184,29 @@ public class IsbnScanActivity extends AppCompatActivity implements ProcessNetDat
             r.play();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void setNetworkCallback(Context context){
+        final ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if(cm != null){
+            cm.registerDefaultNetworkCallback(new ConnectivityManager.NetworkCallback(){
+                @Override
+                public void onAvailable(@NonNull Network network) {
+                    super.onAvailable(network);
+                    Log.d("JBIBLIO", "Connessione ripristinata!");
+                }
+
+                @Override
+                public void onLost(@NonNull Network network) {
+                    new AlertDialog.Builder(context)
+                            .setTitle("Connessione di rete persa!")
+                            .setMessage("Rete wifi disconnessa, torna alla schermata principale.")
+                            .setPositiveButton("Ok", (dialogInterface, i) -> finish())
+                            .show();
+                }
+            });
         }
     }
 }
