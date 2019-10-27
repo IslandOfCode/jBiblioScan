@@ -86,7 +86,7 @@ public class IsbnScanActivity extends AppCompatActivity implements ProcessNetDat
                     .setMessage("Il server non ha confermato la ricezione!")
                     .setPositiveButton("chiudi", (dialogInterface, i) -> finish())
                     .show();
-        } else if(result != null && result.trim().equals(ProcessNetData.UNKNOW)) {
+        } else if(result.trim().equals(ProcessNetData.UNKNOW)) {
             Log.d("JBIBLIO", "SERVER NON HA RICONOSCIUTO QUESTO DEVICE!");
             new AlertDialog.Builder(this)
                     .setTitle("ERRORE!")
@@ -111,7 +111,6 @@ public class IsbnScanActivity extends AppCompatActivity implements ProcessNetDat
 
         beepSound();
 
-        //TODO dovrebbe essere inutile, poichè già concludo la connessione prima di aprirne un'altra
         if(MHC!=null && !MHC.isCancelled()){
             MHC.cancel(true);
         }

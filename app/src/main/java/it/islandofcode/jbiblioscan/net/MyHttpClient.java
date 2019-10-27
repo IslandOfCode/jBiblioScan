@@ -45,6 +45,7 @@ public class MyHttpClient  extends AsyncTask<String, Void, String> implements Se
     protected void onPostExecute(String s) {
         if(s==null || s.isEmpty()){
             Log.e("JBIBLIO", "Stringa NULLA/VUOTA di ritorno dall'operazione di rete");
+            return;
         }
         this.dataProcessor.process(s);
     }

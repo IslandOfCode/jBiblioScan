@@ -16,8 +16,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.util.GregorianCalendar;
-
 import it.islandofcode.jbiblioscan.net.MyHttpClient;
 import it.islandofcode.jbiblioscan.net.ProcessNetData;
 
@@ -27,14 +25,13 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
 
     //private static final int REQUEST_ID = 444;
 
-    private MyHttpClient netop = null;
     private String UUID;
     private String URL;
     private boolean CONNECTION_ACTIVE = false;
 
-    private GregorianCalendar lastPing;
-    private boolean PING_REQUESTED = false;
-    private static final int PING_MINIMUM_WAIT_TIME = 5000; //in millisecondi
+    //private GregorianCalendar lastPing;
+    //private boolean PING_REQUESTED = false;
+    //private static final int PING_MINIMUM_WAIT_TIME = 5000; //in millisecondi
 
     public void goToTheWebsite(View view){
         String url = "http://www.islandofcode.it";
@@ -79,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
     @Override
     protected void onResume() {
         super.onResume();
-        if(CONNECTION_ACTIVE && URL != null && !URL.isEmpty()){
+        /*if(CONNECTION_ACTIVE && URL != null && !URL.isEmpty()){
 
             if(lastPing==null)
                 lastPing = new GregorianCalendar();
@@ -95,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
                 Log.d("JBIBLIO","PING DENIEND, ultimo ping " +cmp+"ms fa.");
             }
 
-        }
+        }*/
     }
 
     public void openScanView(View view){
@@ -107,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
 
     public void connect(View view){
         if(CONNECTION_ACTIVE){ //sto chiedendo una disconnessione
-            netop = new MyHttpClient(this);
+            MyHttpClient netop = new MyHttpClient(this);
             netop.execute(URL+"/disconnect/"+UUID);
 
         } else {
@@ -148,11 +145,11 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
         } else if(result.equals(ProcessNetData.DISCONNECTION) || result.equals(ProcessNetData.UNKNOW)){
             Log.d("JBIBLIO", "DISCONNECT RESPONSE: " + result);
             setConnectionTextStyle(false);
-        } else if(PING_REQUESTED && !result.contains(ProcessNetData.PONG)){
+        /*/} else if(PING_REQUESTED && !result.contains(ProcessNetData.PONG)){
             Log.d("JBIBLIO","PING FAILED" );
             showMessage("Server offline");
             PING_REQUESTED = false;
-            setConnectionTextStyle(false);
+            setConnectionTextStyle(false);*/
         } else {
             Log.d("JBIBLIO","Failed to process the result from network" );
         }
@@ -161,6 +158,12 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        if(data==null) {
+            showMessage("Errore interno. Intent data non poteva essere nullo.");
+            return;
+        }
+
         //connectactivity
         Log.d("JBIBLIO", "\n\tREQUEST CODE: "+requestCode
                 +"\n\tRESULT CODE: " +resultCode
@@ -175,7 +178,6 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
                 this.URL = data.getStringExtra("URL");
                 Log.d("JBIBLIO", "Returned " + UUID + " from " + URL + " by PairScan");
                 setConnectionTextStyle(true);
-                return;
             } else if(resultCode==RESULT_CANCELED){
                 //ricevuto un errore
                 showMessage("Connessione annullata");
@@ -201,9 +203,7 @@ public class MainActivity extends AppCompatActivity implements ProcessNetData {
 
         if (cm != null) {
             NetworkCapabilities capabilities = cm.getNetworkCapabilities(cm.getActiveNetwork());
-            if (capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                return true;
-            }
+            return  (capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI));
         }
 
         return false;
