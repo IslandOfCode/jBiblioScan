@@ -1,7 +1,6 @@
 package it.islandofcode.jbiblioscan;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.Ringtone;
@@ -11,7 +10,6 @@ import android.net.Network;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -87,26 +85,33 @@ public class IsbnScanActivity extends AppCompatActivity implements ProcessNetDat
 
     @Override
     public void process(String result) {
-        if (result == null || !result.trim().equals(ProcessNetData.RECEIVED)) {
-            Log.d("JBIBLIO", "ISBN NON RICEVUTO, risposta [" + result + "]");
+        if (result == null || result.isEmpty()){// || !result.trim().equals(ProcessNetData.RECEIVED)) {
+            Log.e("JBIBLIO", "Il server ha ritornato NULL/EMPTY come risposta");
             new AlertDialog.Builder(this)
                     .setTitle("ERRORE!")
-                    .setMessage("Il server non ha confermato la ricezione!")
+                    .setMessage("Il server non ha confermato la ricezione oppure è offline!")
                     .setPositiveButton("chiudi", (dialogInterface, i) -> finish())
                     .show();
         } else if(result.trim().equals(ProcessNetData.UNKNOW)) {
-            Log.d("JBIBLIO", "SERVER NON HA RICONOSCIUTO QUESTO DEVICE!");
+            Log.e("JBIBLIO", "SERVER NON HA RICONOSCIUTO QUESTO DEVICE!");
             new AlertDialog.Builder(this)
                     .setTitle("ERRORE!")
                     .setMessage("Il server non ha riconosciuto questo dispositivo.")
                     .setPositiveButton("OK", (dialogInterface, i) -> finish())
                     .show();
-        } else {
+        } else if(result.trim().equals(ProcessNetData.RECEIVED)){
             new AlertDialog.Builder(this)
                     .setTitle("ISBN ricevuto!")
                     .setMessage("Vuoi scansionare un altro codice a barre?")
                     .setPositiveButton("Si", (dialogInterface, i) -> mScannerView.resumeCameraPreview(this))
                     .setNegativeButton("No", (dialogInterface, i) -> finish())
+                    .show();
+        } else {
+            Log.d("JBIBLIO", "Riposta ["+result+"] del server sconosciuta.");
+            new AlertDialog.Builder(this)
+                    .setTitle("ERRORE!")
+                    .setMessage("Il server ha risposto in modo anomalo alla richiesta.")
+                    .setPositiveButton("chiudi", (dialogInterface, i) -> finish())
                     .show();
         }
     }
@@ -117,7 +122,7 @@ public class IsbnScanActivity extends AppCompatActivity implements ProcessNetDat
         Log.v("JBIBLIO", barcode); // Prints scan results
         Log.v("JBIBLIO", rawResult.getBarcodeFormat().toString()); // Prints the scan format (qrcode, pdf417 etc.)
 
-        beepSound();
+        //beepSound();
 
         if(MHC!=null && !MHC.isCancelled()){
             MHC.cancel(true);

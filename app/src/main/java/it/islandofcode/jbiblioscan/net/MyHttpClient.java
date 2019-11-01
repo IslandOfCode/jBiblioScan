@@ -22,9 +22,9 @@ public class MyHttpClient  extends AsyncTask<String, Void, String> implements Se
     @Override
     protected String doInBackground(String... strings) {
         OkHttpClient client = new OkHttpClient().newBuilder()
-                .connectTimeout(1500, TimeUnit.MILLISECONDS)
-                .readTimeout(1500, TimeUnit.MILLISECONDS)
-                .writeTimeout(1500, TimeUnit.MILLISECONDS)
+                .connectTimeout(2000, TimeUnit.MILLISECONDS)
+                .readTimeout(2000, TimeUnit.MILLISECONDS)
+                .writeTimeout(2000, TimeUnit.MILLISECONDS)
                 .build();
 
         Request request = new Request.Builder()
@@ -35,6 +35,7 @@ public class MyHttpClient  extends AsyncTask<String, Void, String> implements Se
             response = client.newCall(request).execute();
             return Objects.requireNonNull(response.body()).string();
         } catch (IOException e) {
+            Log.e("JBIBLIO", "Eccezione di rete");
             e.printStackTrace();
         }
 
@@ -45,7 +46,6 @@ public class MyHttpClient  extends AsyncTask<String, Void, String> implements Se
     protected void onPostExecute(String s) {
         if(s==null || s.isEmpty()){
             Log.e("JBIBLIO", "Stringa NULLA/VUOTA di ritorno dall'operazione di rete");
-            return;
         }
         this.dataProcessor.process(s);
     }
